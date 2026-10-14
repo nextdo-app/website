@@ -4,7 +4,7 @@ Nextdo 产品官网，使用 Astro 静态页面 + Cloudflare Pages Functions。
 
 - 产品官网：首页 `/`
 - 安装包下载：`/download`
-- 公开应用入口：https://nextdo-app.157712.xyz
+- 产品官网：https://nextdo-app.157712.xyz\n- 现有网页版：https://nextdo-cew.pages.dev
 - 代码仓库：https://github.com/nextdo-app/nextdo
 
 ## 本地运行
@@ -15,7 +15,7 @@ npm run dev
 npm run build
 ```
 
-页面可以使用 Astro 本地服务器预览，但 `/api/releases` 和 `/api/download` 是 Cloudflare Pages Functions，本地要测试这两条接口，需要运行 Pages 的本地运行时（例如安装 Wrangler 后构建并运行 `npx wrangler pages dev dist`）。
+Astro 以目录形式生成静态路由；构建后应有 `dist/download/index.html`。页面可以使用 Astro 本地服务器预览，但 `/api/releases` 和 `/api/download` 是 Cloudflare Pages Functions，本地要测试这两条接口，需要运行 Pages 的本地运行时（例如安装 Wrangler 后构建并运行 `npx wrangler pages dev dist`）。
 
 ## Cloudflare Pages
 
