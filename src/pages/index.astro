@@ -1,5 +1,5 @@
 ---
-const appUrl = "https://nextdo-cew.pages.dev";
+const appUrl = "https://nextdo-app.157712.xyz";
 const sourceUrl = "https://github.com/nextdo-app/nextdo";
 const features = [
   {number:"01",en:"CAPTURE",title:"想到了，就先记下来。",desc:"把突然出现的想法、任务和琐事放进收集箱。无需立刻规划，让大脑回到正在做的事。",icon:"✳"},
@@ -25,7 +25,7 @@ const steps=[["01","收集","捕捉脑海中的每一件事"],["02","厘清","�
   <body id="top">
     <header class="site-header wrap">
       <a class="brand" href="#top" aria-label="Nextdo 首页"><span class="mark">✳</span>nextdo<span class="dot">.</span></a>
-      <nav aria-label="主导航"><a href="#features">产品亮点</a><a href="#workflow">使用方式</a><a href={sourceUrl} target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav>
+      <nav aria-label="主导航"><a href="#features">产品亮点</a><a href="#workflow">使用方式</a><a href="/download">下载客户端</a><a href={sourceUrl} target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav>
       <a class="nav-cta" href={appUrl} target="_blank" rel="noopener noreferrer">打开 Nextdo ↗</a>
     </header>
     <main>
@@ -34,7 +34,7 @@ const steps=[["01","收集","捕捉脑海中的每一件事"],["02","厘清","�
           <div class="eyebrow"><span></span> YOUR NEXT ACTION, MADE CLEAR</div>
           <h1>少一点计划。<br /><em>多一点行动。</em></h1>
           <p>待办事项不该成为新的负担。Nextdo 将 GTD 的思考流程变得简单，帮你收集想法、厘清任务，并找到此刻真正值得做的下一件事。</p>
-          <div class="buttons"><a class="btn primary" href={appUrl} target="_blank" rel="noopener noreferrer">免费开始使用 ↗</a><a class="btn secondary" href={sourceUrl} target="_blank" rel="noopener noreferrer">查看源代码 ↗</a></div>
+          <div class="buttons"><a class="btn primary" href={appUrl} target="_blank" rel="noopener noreferrer">免费开始使用 ↗</a><a class="btn secondary" href="/download">下载客户端 ↓</a></div>
           <div class="benefits"><span>✓ 开源免费</span><span>✓ 本地优先</span><span>✓ 浏览器可用</span></div>
         </div>
         <div class="hero-art">
@@ -51,6 +51,6 @@ const steps=[["01","收集","捕捉脑海中的每一件事"],["02","厘清","�
       <section class="opensource wrap"><div class="open-symbol">✳</div><div><span class="kicker">BUILT TO STAY YOURS</span><h2>你的任务，<br />理应由你掌控。</h2><p>Nextdo 开源，以本地数据为中心设计。断开网络，也能继续管理自己的生活。</p><a class="inline-link" href={sourceUrl} target="_blank" rel="noopener noreferrer">查看 GitHub 源代码 ↗</a></div><div class="open-tags"><strong>Local-first</strong><span>以本地数据为中心</span><strong>Open source</strong><span>开源透明，欢迎共建</span></div></section>
       <section class="callout wrap"><span class="kicker">THE NEXT STEP IS SIMPLE</span><h2>你的下一步，<br />从这里开始。</h2><p>不必把一切都想好。打开 Nextdo，先记下第一件事。</p><a class="btn light" href={appUrl} target="_blank" rel="noopener noreferrer">立即体验 Nextdo ↗</a></section>
     </main>
-    <footer class="wrap footer"><a class="brand" href="#top"><span class="mark">✳</span>nextdo<span class="dot">.</span></a><span>为真正重要的事，留出更多空间。</span><div><a href={sourceUrl}>GitHub ↗</a><a href={appUrl}>打开应用 ↗</a></div><small>© {new Date().getFullYear()} Nextdo · MIT License</small></footer>
+    <footer class="wrap footer"><a class="brand" href="#top"><span class="mark">✳</span>nextdo<span class="dot">.</span></a><span>为真正重要的事，留出更多空间。</span><div><a href="/download">下载客户端 ↓</a><a href={sourceUrl}>GitHub ↗</a><a href={appUrl}>打开应用 ↗</a></div><small>© {new Date().getFullYear()} Nextdo · MIT License</small></footer>
   </body>
 </html>
