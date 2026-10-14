@@ -1,0 +1,77 @@
+---
+const appUrl = "https://nextdo-app.157712.xyz";
+const stable="v0.1.4";
+const beta="v0.1.6-beta.3";
+const files = [
+{platform:"macOS",icon:"⌘",description:"MacBook / iMac",items:[["Apple Silicon","aarch64.dmg"],["Intel Mac","x64.dmg"]]},
+{platform:"Windows",icon:"⊞",description:"Windows 10 / 11",items:[["Windows x64 安装程序","x64-setup.exe"]]},
+{platform:"Android",icon:"▣",description:"Android 手机和平板",items:[["ARM64（推荐）","android_arm64-v8a.apk"]]},
+{platform:"Linux",icon:"⌁",description:"常见 64 位 Linux 发行版",items:[["AppImage","amd64.AppImage"],["Debian / Ubuntu","amd64.deb"]]}
+];
+const fallback=(version,suffix)=>`Nextdo_${version.replace(/^v/,"")}_${suffix}`;
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#f8f8f4"/>
+<meta name="description" content="下载 Nextdo 桌面和 Android 客户端。支持 macOS、Windows、Linux、Android，提供稳定版与测试版。"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="stylesheet" href="/styles.css"/>
+<title>下载 Nextdo — 适用于 macOS、Windows、Android 和 Linux</title>
+</head>
+<body id="top">
+<header class="site-header wrap"><a href="/" class="brand"><span class="mark">✳</span>nextdo<span class="dot">.</span></a><nav aria-label="主导航"><a href="/">产品首页</a><a href="#platforms">选择平台</a><a href="#faq">安装说明</a></nav><a class="nav-cta" href={appUrl} target="_blank" rel="noopener noreferrer">打开网页版 ↗</a></header>
+<main>
+<section class="download-hero wrap"><span class="kicker">DOWNLOAD NEXTDO</span><h1>把下一步，<br/><em>带到你的设备上。</em></h1><p>选择适合你的系统和版本，直接从本站获取安装包。不需要登录，也不需要进入代码托管页面。</p><div class="download-controls"><span>发布渠道</span><div class="channel-tabs" role="group" aria-label="版本渠道"><button type="button" data-channel="stable" aria-pressed="true">稳定版 <small id="stable-version">{stable}</small></button><button type="button" data-channel="beta" aria-pressed="false">测试版 <small id="beta-version">{beta}</small></button></div></div><p class="channel-note" id="channel-note" aria-live="polite">稳定版优先考虑日常使用；测试版包含较新的改动，可能存在问题。</p></section>
+<section class="wrap download-section" id="platforms"><div class="download-grid">{files.map(f=><article class="download-card"><div class="platform-icon" aria-hidden="true">{f.icon}</div><h2>{f.platform}</h2><p>{f.description}</p><div class="installer-list">{f.items.map(([label,suffix])=><a data-suffix={suffix} data-platform={f.platform} class="installer" href={`/api/download?channel=stable&file=${encodeURIComponent(fallback(stable,suffix))}`}><span>{label}</span><span>下载 ↓</span></a>)}</div></article>)}</div><p class="release-hint" id="release-status" role="status">安装包由 Nextdo 官方 GitHub Releases 提供，通过本站转发下载。正在确认最新版本…</p><div class="download-web"><div><span class="kicker">NO INSTALLATION NEEDED</span><h2>也可以直接在浏览器中使用。</h2><p>网页版适用于现代浏览器；iPhone 和 iPad 可通过 Safari「添加到主屏幕」。当前没有独立的 iOS 安装包。</p></div><a class="btn primary" href={appUrl} target="_blank" rel="noopener noreferrer">打开 Nextdo 网页版 ↗</a></div></section>
+<section class="wrap download-faq" id="faq"><span class="kicker">GOOD TO KNOW</span><h2>安装前，你可能想知道</h2><div class="faq-list"><details><summary>稳定版和测试版有什么区别？</summary><p>稳定版经过正式发布；测试版包含更新的功能或修复，但也可能出现兼容性问题。重要数据建议定期备份。</p></details><details><summary>为什么浏览器显示开发者身份警告？</summary><p>开源软件可能尚未取得对应平台的商业代码签名或公证。请确认来源可信后再决定是否安装，不建议为此关闭系统安全防护。</p></details><details><summary>安装包是从哪里下载的？</summary><p>本站从 Nextdo 官方 GitHub Releases 获取安装包并通过 Cloudflare 流式转发；安装文件没有在本站重新打包。本站服务器只负责传输，不修改文件内容。</p></details><details><summary>iPhone 可以使用吗？</summary><p>可以打开网页版，在 Safari 的分享菜单中选择「添加到主屏幕」。当前未提供独立 iOS 安装包。</p></details></div></section>
+</main>
+<footer class="wrap footer"><a href="/" class="brand"><span class="mark">✳</span>nextdo<span class="dot">.</span></a><span>为真正重要的事，留出更多空间。</span><div><a href="/">产品首页</a><a href={appUrl}>打开应用 ↗</a></div><small>© {new Date().getFullYear()} Nextdo</small></footer>
+<script is:inline>
+(() => {
+let current="stable";
+const defaults={stable:{version:"v0.1.4"},beta:{version:"v0.1.6-beta.3"}};
+let releases={...defaults};
+let validAssets=null;
+const baseNames = { "aarch64.dmg":"_aarch64.dmg","x64.dmg":"_x64.dmg","x64-setup.exe":"_x64-setup.exe","android_arm64-v8a.apk":"_android_arm64-v8a.apk","amd64.AppImage":"_amd64.AppImage","amd64.deb":"_amd64.deb" };
+function render(){
+ document.querySelectorAll("[data-channel]").forEach(btn=>btn.setAttribute("aria-pressed",String(btn.dataset.channel===current)));
+ document.querySelectorAll(".installer").forEach(a=>{
+  const suffix=a.dataset.suffix;
+  const version=releases[current]?.version;
+  const name=version?"Nextdo_"+version.replace(/^v/,"")+"_"+suffix:null;
+  const present=name && (!validAssets || validAssets[current]?.has(name));
+  if(present){
+    a.href="/api/download?channel="+current+"&file="+encodeURIComponent(name);
+    a.classList.remove("unavailable");a.removeAttribute("aria-disabled");
+    a.lastElementChild.textContent="下载 ↓";
+  }else{
+    a.removeAttribute("href");a.classList.add("unavailable");
+    a.setAttribute("aria-disabled","true");a.lastElementChild.textContent="暂未提供";
+  }
+ });
+ document.getElementById("channel-note").textContent=current==="stable"?"稳定版优先考虑日常使用；测试版包含较新的改动，可能存在问题。":"测试版提供较新功能，可能包含未解决的问题。请注意备份重要数据。";
+}
+document.querySelectorAll("[data-channel]").forEach(btn=>btn.addEventListener("click",()=>{current=btn.dataset.channel;render();}));
+(async()=>{
+try{
+ const response=await fetch("/api/releases");
+ if(!response.ok)throw Error("unavailable");
+ const data=await response.json();
+ if(!data.stable?.version)throw Error("empty");
+ releases={stable:data.stable,beta:data.beta||null};
+ validAssets={stable:new Set(data.stable.assets.map(a=>a.name)),beta:new Set((data.beta?.assets||[]).map(a=>a.name))};
+ document.getElementById("stable-version").textContent=data.stable.version;
+ document.getElementById("beta-version").textContent=data.beta?.version||"暂不可用";
+ document.getElementById("release-status").textContent="已同步最新发布信息。安装包来自 Nextdo 官方发布，下载由本站代理转发。";
+ render();
+}catch{
+ document.getElementById("release-status").textContent="暂时无法同步版本信息，页面显示最近确认的版本；下载接口会重新核对官方发布文件。";
+}
+})();
+})();
+</script>
+</body>
+</html>
