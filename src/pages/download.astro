@@ -1,78 +1,645 @@
 ---
-const webAppUrl = "https://nextdo-cew.pages.dev";
-const stable="v0.1.4";
-const beta="v0.1.6-beta.3";
-const files = [
-{platform:"macOS",icon:"⌘",description:"MacBook / iMac",items:[["Apple Silicon","aarch64.dmg"],["Intel Mac","x64.dmg"]]},
-{platform:"Windows",icon:"⊞",description:"Windows 10 / 11",items:[["Windows x64 安装程序","x64-setup.exe"]]},
-{platform:"Android",icon:"▣",description:"Android 手机和平板",items:[["ARM64（推荐）","android_arm64-v8a.apk"]]},
-{platform:"Linux",icon:"⌁",description:"常见 64 位 Linux 发行版",items:[["AppImage","amd64.AppImage"],["Debian / Ubuntu","amd64.deb"]]}
+const webAppUrl = "https://nextdo-app.157712.xyz";
+const sourceUrl = "https://github.com/nextdo-app/nextdo";
+const stable = "v0.1.7";
+const beta = "v0.1.9-beta.8";
+
+const platforms = [
+  {
+    id: "macos",
+    platform: "macOS",
+    description: "适用于搭载 Apple 芯片或 Intel 处理器的 Mac 设备 (macOS 11+)",
+    icon: "apple",
+    items: [
+      {
+        label: "Apple Silicon (M1/M2/M3/M4)",
+        suffix: "aarch64.dmg",
+        type: ".dmg",
+        size: "7.2 MB",
+        recommended: true
+      },
+      {
+        label: "Intel 处理器",
+        suffix: "x64.dmg",
+        type: ".dmg",
+        size: "7.4 MB",
+        recommended: false
+      }
+    ]
+  },
+  {
+    id: "windows",
+    platform: "Windows",
+    description: "适用于 Windows 10 及 Windows 11 (64 位)",
+    icon: "windows",
+    items: [
+      {
+        label: "Windows x64 安装程序 (推荐)",
+        suffix: "x64-setup.exe",
+        type: ".exe",
+        size: "4.2 MB",
+        recommended: true
+      },
+      {
+        label: "Windows x64 MSI 安装包",
+        suffix: "x64_en-US.msi",
+        type: ".msi",
+        size: "4.8 MB",
+        recommended: false
+      }
+    ]
+  },
+  {
+    id: "android",
+    platform: "Android",
+    description: "适用于主流 Android 手机与平板设备 (Android 8.0+)",
+    icon: "android",
+    items: [
+      {
+        label: "ARM64 安装包 (绝大多数现代手机)",
+        suffix: "android_arm64-v8a.apk",
+        type: ".apk",
+        size: "35.2 MB",
+        recommended: true
+      },
+      {
+        label: "ARMv7 安装包 (较旧设备)",
+        suffix: "android_armeabi-v7a.apk",
+        type: ".apk",
+        size: "28.5 MB",
+        recommended: false
+      }
+    ]
+  },
+  {
+    id: "linux",
+    platform: "Linux",
+    description: "适用于常见 64 位 Linux 发行版 (Ubuntu, Debian, Fedora, Arch 等)",
+    icon: "linux",
+    items: [
+      {
+        label: "AppImage (开箱即用免安装)",
+        suffix: "amd64.AppImage",
+        type: ".AppImage",
+        size: "79.2 MB",
+        recommended: true
+      },
+      {
+        label: "Debian / Ubuntu 软件包",
+        suffix: "amd64.deb",
+        type: ".deb",
+        size: "7.5 MB",
+        recommended: false
+      }
+    ]
+  }
 ];
-const fallback=(version,suffix)=>`Nextdo_${version.replace(/^v/,"")}_${suffix}`;
+
+const getDirectUrl = (tag, suffix) =>
+  `https://github.com/nextdo-app/nextdo/releases/download/${tag}/Nextdo_${tag.replace(/^v/, "")}_${suffix}`;
 ---
 <!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="theme-color" content="#f8f8f4"/>
-<meta name="description" content="下载 Nextdo 桌面和 Android 客户端。支持 macOS、Windows、Linux、Android，提供稳定版与测试版。"/>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-<link rel="stylesheet" href="/styles.css"/>
-<link rel="stylesheet" href="/download.css"/>
-<title>下载 Nextdo — 适用于 macOS、Windows、Android 和 Linux</title>
-</head>
-<body id="top">
-<header class="site-header wrap"><a href="/" class="brand"><span class="mark">✳</span>nextdo<span class="dot">.</span></a><nav aria-label="主导航"><a href="/">产品首页</a><a href="#platforms">选择平台</a><a href="#faq">安装说明</a></nav><a class="nav-cta" href={webAppUrl} target="_blank" rel="noopener noreferrer">在线使用 ↗</a></header>
-<main>
-<section class="download-hero wrap"><span class="kicker">DOWNLOAD NEXTDO</span><h1>把下一步，<br/><em>带到你的设备上。</em></h1><p>选择适合你的系统和版本，直接从本站获取安装包。不需要登录，也不需要进入代码托管页面。</p><div class="download-controls"><span>发布渠道</span><div class="channel-tabs" role="group" aria-label="版本渠道"><button type="button" data-channel="stable" aria-pressed="true">稳定版 <small id="stable-version">{stable}</small></button><button type="button" data-channel="beta" aria-pressed="false">测试版 <small id="beta-version">{beta}</small></button></div></div><p class="channel-note" id="channel-note" aria-live="polite">稳定版优先考虑日常使用；测试版包含较新的改动，可能存在问题。</p></section>
-<section class="wrap download-section" id="platforms"><div class="download-grid">{files.map(f=><article class="download-card"><div class="platform-icon" aria-hidden="true">{f.icon}</div><h2>{f.platform}</h2><p>{f.description}</p><div class="installer-list">{f.items.map(([label,suffix])=><a data-suffix={suffix} data-platform={f.platform} class="installer" href={`/api/download?channel=stable&file=${encodeURIComponent(fallback(stable,suffix))}`}><span>{label}</span><span>下载 ↓</span></a>)}</div></article>)}</div><p class="release-hint" id="release-status" role="status">安装包由 Nextdo 官方 GitHub Releases 提供，通过本站转发下载。正在确认最新版本…</p><div class="download-web"><div><span class="kicker">NO INSTALLATION NEEDED</span><h2>也可以直接在浏览器中使用。</h2><p>网页版适用于现代浏览器；iPhone 和 iPad 可通过 Safari「添加到主屏幕」。当前没有独立的 iOS 安装包。</p></div><a class="btn primary" href={webAppUrl} target="_blank" rel="noopener noreferrer">打开 Nextdo 网页版 ↗</a></div></section>
-<section class="wrap download-faq" id="faq"><span class="kicker">GOOD TO KNOW</span><h2>安装前，你可能想知道</h2><div class="faq-list"><details><summary>稳定版和测试版有什么区别？</summary><p>稳定版经过正式发布；测试版包含更新的功能或修复，但也可能出现兼容性问题。重要数据建议定期备份。</p></details><details><summary>为什么浏览器显示开发者身份警告？</summary><p>开源软件可能尚未取得对应平台的商业代码签名或公证。请确认来源可信后再决定是否安装，不建议为此关闭系统安全防护。</p></details><details><summary>安装包是从哪里下载的？</summary><p>本站从 Nextdo 官方 GitHub Releases 获取安装包并通过 Cloudflare 流式转发；安装文件没有在本站重新打包。本站服务器只负责传输，不修改文件内容。</p></details><details><summary>iPhone 可以使用吗？</summary><p>可以打开网页版，在 Safari 的分享菜单中选择「添加到主屏幕」。当前未提供独立 iOS 安装包。</p></details></div></section>
-</main>
-<footer class="wrap footer"><a href="/" class="brand"><span class="mark">✳</span>nextdo<span class="dot">.</span></a><span>为真正重要的事，留出更多空间。</span><div><a href="/">产品首页</a><a href={webAppUrl}>打开应用 ↗</a></div><small>© {new Date().getFullYear()} Nextdo</small></footer>
-<script is:inline>
-(() => {
-let current="stable";
-const defaults={stable:{version:"v0.1.4"},beta:{version:"v0.1.6-beta.3"}};
-let releases={...defaults};
-let validAssets=null;
-const baseNames = { "aarch64.dmg":"_aarch64.dmg","x64.dmg":"_x64.dmg","x64-setup.exe":"_x64-setup.exe","android_arm64-v8a.apk":"_android_arm64-v8a.apk","amd64.AppImage":"_amd64.AppImage","amd64.deb":"_amd64.deb" };
-function render(){
- document.querySelectorAll("[data-channel]").forEach(btn=>btn.setAttribute("aria-pressed",String(btn.dataset.channel===current)));
- document.querySelectorAll(".installer").forEach(a=>{
-  const suffix=a.dataset.suffix;
-  const version=releases[current]?.version;
-  const name=version?"Nextdo_"+version.replace(/^v/,"")+"_"+suffix:null;
-  const present=name && (!validAssets || validAssets[current]?.has(name));
-  if(present){
-    a.href="/api/download?channel="+current+"&file="+encodeURIComponent(name);
-    a.classList.remove("unavailable");a.removeAttribute("aria-disabled");
-    a.lastElementChild.textContent="下载 ↓";
-  }else{
-    a.removeAttribute("href");a.classList.add("unavailable");
-    a.setAttribute("aria-disabled","true");a.lastElementChild.textContent="暂未提供";
-  }
- });
- document.getElementById("channel-note").textContent=current==="stable"?"稳定版优先考虑日常使用；测试版包含较新的改动，可能存在问题。":"测试版提供较新功能，可能包含未解决的问题。请注意备份重要数据。";
-}
-document.querySelectorAll("[data-channel]").forEach(btn=>btn.addEventListener("click",()=>{current=btn.dataset.channel;render();}));
-(async()=>{
-try{
- const response=await fetch("/api/releases");
- if(!response.ok)throw Error("unavailable");
- const data=await response.json();
- if(!data.stable?.version)throw Error("empty");
- releases={stable:data.stable,beta:data.beta||null};
- validAssets={stable:new Set(data.stable.assets.map(a=>a.name)),beta:new Set((data.beta?.assets||[]).map(a=>a.name))};
- document.getElementById("stable-version").textContent=data.stable.version;
- document.getElementById("beta-version").textContent=data.beta?.version||"暂不可用";
- document.getElementById("release-status").textContent="已同步最新发布信息。安装包来自 Nextdo 官方发布，下载由本站代理转发。";
- render();
-}catch{
- document.getElementById("release-status").textContent="暂时无法同步版本信息，页面显示最近确认的版本；下载接口会重新核对官方发布文件。";
-}
-})();
-})();
-</script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f9faf7" />
+    <meta name="description" content="下载 Nextdo 桌面端与移动端客户端。支持 macOS (Apple Silicon / Intel)、Windows、Android 及 Linux，开源安全、本地优先。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="下载 Nextdo 客户端 — 支持 macOS、Windows、Linux、Android" />
+    <meta property="og:description" content="下载 Nextdo 桌面端与移动端安装包。提供稳定版与最新测试版直接下载。" />
+    <meta property="og:url" content="https://nextdo.157712.xyz/download/" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/download.css" />
+    <title>下载 Nextdo — 适用于 macOS、Windows、Linux 和 Android</title>
+  </head>
+  <body id="top">
+    <!-- Header -->
+    <div class="site-header-container">
+      <header class="site-header wrap">
+        <a class="brand" href="/" aria-label="Nextdo 首页">
+          <span class="brand-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="12" y1="3" x2="12" y2="21" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="5.6" y1="5.6" x2="18.4" y2="18.4" />
+              <line x1="18.4" y1="5.6" x2="5.6" y2="18.4" />
+            </svg>
+          </span>
+          nextdo<span class="dot">.</span>
+        </a>
+
+        <nav class="nav-links" aria-label="主导航">
+          <a href="/">产品首页</a>
+          <a href="#recommend">为你推荐</a>
+          <a href="#platforms">全部平台</a>
+          <a href="#faq">常见问题</a>
+          <a href={sourceUrl} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a class="nav-cta" href={webAppUrl} target="_blank" rel="noopener noreferrer">
+            免安装在线使用 ↗
+          </a>
+        </div>
+
+        <button class="mobile-nav-toggle" id="mobile-toggle" aria-label="展开菜单" aria-expanded="false">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+      </header>
+
+      <div class="mobile-menu-drawer" id="mobile-drawer">
+        <a href="/" class="mobile-link">产品首页</a>
+        <a href="#recommend" class="mobile-link">为你推荐</a>
+        <a href="#platforms" class="mobile-link">全部平台</a>
+        <a href="#faq" class="mobile-link">常见问题</a>
+        <a href={webAppUrl} target="_blank" rel="noopener noreferrer" class="mobile-link">在线网页版 ↗</a>
+        <a href={sourceUrl} target="_blank" rel="noopener noreferrer" class="mobile-link">GitHub 源码 ↗</a>
+      </div>
+    </div>
+
+    <main>
+      <!-- Download Hero -->
+      <section class="download-hero wrap">
+        <div class="kicker">
+          <span class="kicker-pill">DOWNLOAD NEXTDO</span>
+        </div>
+        <h1>把极简 GTD，<br /><em>带到你的所有设备上。</em></h1>
+        <p>
+          选择适合你操作系统的安装包，直接从官方发布源高速下载。无需注册账号，本地数据优先，断网依然顺畅好用。
+        </p>
+
+        <!-- OS Auto Detection Recommend Box -->
+        <div class="os-recommend-wrapper" id="recommend">
+          <div class="os-recommend-card" id="os-card">
+            <div class="os-recommend-info">
+              <div class="os-recommend-icon" id="os-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </div>
+              <div class="os-recommend-text">
+                <span class="badge" id="os-badge">自动检测操作系统</span>
+                <strong id="os-title">正在检测适用你设备的安装包…</strong>
+                <small id="os-desc">支持 macOS、Windows、Linux 及 Android</small>
+              </div>
+            </div>
+            <a class="btn btn-primary os-recommend-btn" id="os-btn" href={getDirectUrl(stable, "aarch64.dmg")}>
+              一键下载 <span id="os-btn-ver">{stable}</span> ↓
+            </a>
+          </div>
+        </div>
+
+        <!-- Release Channel Selector -->
+        <div>
+          <div class="channel-selector" role="group" aria-label="选择发布渠道">
+            <button type="button" class="channel-btn" data-channel="stable" aria-pressed="true">
+              稳定版 (Stable) <span class="ver-tag" id="stable-tag">{stable}</span>
+            </button>
+            <button type="button" class="channel-btn" data-channel="beta" aria-pressed="false">
+              最新测试版 (Beta) <span class="ver-tag" id="beta-tag">{beta}</span>
+            </button>
+          </div>
+          <p class="channel-note" id="channel-note" aria-live="polite">
+            稳定版推荐日常使用，经过充分验证；测试版包含最新特性与修复。
+          </p>
+        </div>
+      </section>
+
+      <!-- Platforms Grid -->
+      <section class="wrap download-section" id="platforms">
+        <div class="download-grid">
+          {platforms.map(p => (
+            <article class="download-card" id={`card-${p.id}`}>
+              <div class="card-top">
+                <div class="platform-icon-box" aria-hidden="true">
+                  {p.icon === "apple" && (
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.84c.66-.82 1.11-1.96.99-3.1-.96.04-2.12.64-2.8 1.44-.6.69-1.12 1.83-.98 2.95 1.07.08 2.15-.55 2.79-1.29z"/>
+                    </svg>
+                  )}
+                  {p.icon === "windows" && (
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.949-1.801"/>
+                    </svg>
+                  )}
+                  {p.icon === "android" && (
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.551 0 .9993.4482.9993.9993.0001.5511-.4483.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.4116 13.8533 8.081 12 8.081s-3.5902.3306-5.1367.8687L4.841 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/>
+                    </svg>
+                  )}
+                  {p.icon === "linux" && (
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12.002 0c-3.14 0-5.69 2.55-5.69 5.69 0 .61.1 1.2.28 1.75C3.262 8.78.992 12.16.992 16.14c0 3.79 2.51 6.94 5.95 7.64.44.09.89.14 1.35.14.71 0 1.39-.12 2.03-.34 1.07.27 2.19.42 3.35.42 1.25 0 2.45-.17 3.59-.48.65.23 1.35.36 2.08.36.46 0 .91-.05 1.35-.14 3.44-.7 5.95-3.85 5.95-7.64 0-4.04-2.33-7.46-5.71-8.75.18-.54.27-1.12.27-1.72 0-3.14-2.55-5.69-5.69-5.69-.53 0-1.04.07-1.52.21-.49-.14-1-.21-1.53-.21zm.01 2.37c1.83 0 3.32 1.49 3.32 3.32 0 .42-.08.82-.23 1.19-.89-.48-1.93-.76-3.04-.76-1.14 0-2.2.29-3.11.8-.14-.38-.22-.79-.22-1.23 0-1.83 1.49-3.32 3.28-3.32z"/>
+                    </svg>
+                  )}
+                </div>
+                <div>
+                  <h2>{p.platform}</h2>
+                </div>
+              </div>
+
+              <p class="platform-desc">{p.description}</p>
+
+              <div class="installer-list">
+                {p.items.map(item => (
+                  <a
+                    class="installer-btn"
+                    data-suffix={item.suffix}
+                    data-platform={p.id}
+                    data-name={`Nextdo_${stable.replace(/^v/, "")}_${item.suffix}`}
+                    href={getDirectUrl(stable, item.suffix)}
+                    download
+                  >
+                    <span>{item.label}</span>
+                    <span class="file-badge">{item.type} · 下载 ↓</span>
+                  </a>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <!-- Release Sync Status & GitHub Mirror -->
+        <div class="release-status-bar">
+          <span id="sync-status">✓ 安装包由 Nextdo 官方发布源直接提供，高速且安全。</span>
+          <span>·</span>
+          <a href={`${sourceUrl}/releases`} target="_blank" rel="noopener noreferrer">
+            前往 GitHub Releases 页面查看完整资产 ↗
+          </a>
+        </div>
+
+        <!-- Web App Callout Card -->
+        <div class="download-web-card">
+          <div>
+            <div class="kicker">
+              <span class="kicker-pill">NO INSTALLATION NEEDED</span>
+            </div>
+            <h2>也可以直接在浏览器中开始使用。</h2>
+            <p>
+              不想在本地安装软件？Nextdo 提供全功能的现代网页版与 PWA 支持。iPhone、iPad 及任何桌面浏览器均可免安装即刻打开；在 Safari 中选择「添加到主屏幕」，即可获得如同原生 App 的沉浸体验。
+            </p>
+          </div>
+          <a class="btn btn-primary" href={webAppUrl} target="_blank" rel="noopener noreferrer">
+            打开 Nextdo 网页版 ↗
+          </a>
+        </div>
+      </section>
+
+      <!-- FAQ Section -->
+      <section class="wrap download-faq" id="faq">
+        <div class="kicker">
+          <span class="kicker-pill">GOOD TO KNOW</span>
+        </div>
+        <h2>安装前，你可能想知道</h2>
+
+        <div class="faq-list">
+          <details class="faq-item" open>
+            <summary>稳定版和测试版有什么区别？</summary>
+            <div class="faq-answer">
+              <p>
+                <strong>稳定版（Stable）</strong>经过充分的功能验证与日常使用测试，推荐用于主力工作与生活管理；<br />
+                <strong>测试版（Beta）</strong>包含最新的功能演进、性能优化和尝鲜特性，更新频率较高，可能偶尔包含未发现的问题。
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>macOS 提示「无法打开，因为无法验证开发者」怎么办？</summary>
+            <div class="faq-answer">
+              <p>
+                由于 Nextdo 是开源独立项目，尚未购买 Apple 商业证书进行公证。首次打开时，若系统拦截，请按以下步骤操作：<br />
+                1. 打开 macOS <strong>系统设置</strong> → <strong>隐私与安全性</strong>；<br />
+                2. 滚动到底部安全性区域，会看到「已阻止使用 Nextdo，因为来自身份不明的开发者」；<br />
+                3. 点击<strong>「仍要打开」</strong>并输入管理员密码确认即可。后续启动均不会再弹出拦截。
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>Windows 弹出 SmartScreen「Windows 已保护你的电脑」如何处理？</summary>
+            <div class="faq-answer">
+              <p>
+                这是 Windows 对尚未积累足够商业下载信誉的新版本可执行文件的标准防护提示。<br />
+                点击提示窗口中的<strong>「更多信息」</strong>链接，然后选择<strong>「仍要运行」</strong>即可正常开始安装。所有安装文件均由 GitHub Actions 自动化编译，代码完全开源透明。
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>Linux AppImage 如何运行？</summary>
+            <div class="faq-answer">
+              <p>
+                下载 <code>.AppImage</code> 文件后，需要为其赋予可执行权限：<br />
+                在终端中执行：<code>chmod +x Nextdo_*.AppImage</code>，然后直接双击或在终端运行 <code>./Nextdo_*.AppImage</code> 即可。如果您使用 Ubuntu / Debian 系列，也可以直接下载 <code>.deb</code> 包并通过 <code>sudo dpkg -i Nextdo_*.deb</code> 安装。
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>安装包是从哪里下载的？速度慢如何处理？</summary>
+            <div class="faq-answer">
+              <p>
+                本站直接重定向至 Nextdo 官方 GitHub Releases 官方存储（由全球 Fastly / AWS CDN 加速）。如果您在特定网络环境下访问 GitHub Releases 遇到速度较慢的情况，建议在页面底部直接访问 GitHub Releases 页面，或配合加速镜像下载。
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>我的数据存储在哪里？更换设备如何迁移？</summary>
+            <div class="faq-answer">
+              <p>
+                Nextdo 遵循 Local-first（本地优先）设计哲学。所有任务、项目和收集箱数据均保存在您本地设备的应用数据库中，绝不会擅自上传到第三方云端。应用设置中支持一键导出完整 JSON / SQLite 数据备份，随时可以导入到新设备中。
+              </p>
+            </div>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="site-footer-container">
+      <div class="wrap">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a class="brand" href="/" aria-label="回到首页">
+              <span class="brand-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <line x1="12" y1="3" x2="12" y2="21" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="5.6" y1="5.6" x2="18.4" y2="18.4" />
+                  <line x1="18.4" y1="5.6" x2="5.6" y2="18.4" />
+                </svg>
+              </span>
+              nextdo<span class="dot">.</span>
+            </a>
+            <p>为真正重要的事情，留出更多的时间与心流空间。开源、本地优先的极简 GTD 任务管理工具。</p>
+          </div>
+
+          <div class="footer-col">
+            <h4>产品</h4>
+            <ul>
+              <li><a href="/#features">功能亮点</a></li>
+              <li><a href="/#workflow">GTD 工作流程</a></li>
+              <li><a href="/download/">安装包下载</a></li>
+              <li><a href={webAppUrl} target="_blank" rel="noopener noreferrer">Web 网页版</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>下载快捷入口</h4>
+            <ul>
+              <li><a href="#card-macos">macOS 客户端</a></li>
+              <li><a href="#card-windows">Windows 客户端</a></li>
+              <li><a href="#card-android">Android 客户端</a></li>
+              <li><a href="#card-linux">Linux 客户端</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>开源与社区</h4>
+            <ul>
+              <li><a href={sourceUrl} target="_blank" rel="noopener noreferrer">GitHub 仓库</a></li>
+              <li><a href={`${sourceUrl}/releases`} target="_blank" rel="noopener noreferrer">发布日志</a></li>
+              <li><a href={`${sourceUrl}/issues`} target="_blank" rel="noopener noreferrer">提交 Issue</a></li>
+              <li><a href={`${sourceUrl}/blob/main/LICENSE`} target="_blank" rel="noopener noreferrer">MIT 开源协议</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <span>© {new Date().getFullYear()} Nextdo Project. Released under the MIT License.</span>
+          <div class="footer-bottom-links">
+            <a href={sourceUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href={webAppUrl} target="_blank" rel="noopener noreferrer">Web App</a>
+            <a href="#top">回到顶部 ↑</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Client-Side Script: OS Detection & Live Release Update -->
+    <script is:inline>
+      (() => {
+        // Fallback release definitions
+        const fallbackReleases = {
+          stable: {
+            version: "v0.1.7",
+            tag: "v0.1.7"
+          },
+          beta: {
+            version: "v0.1.9-beta.8",
+            tag: "v0.1.9-beta.8"
+          }
+        };
+
+        let currentChannel = "stable";
+        let activeReleases = { ...fallbackReleases };
+        let dynamicAssets = null;
+
+        const makeDownloadUrl = (ver, suffix) => {
+          const cleanVer = ver.replace(/^v/, "");
+          return `https://github.com/nextdo-app/nextdo/releases/download/${ver}/Nextdo_${cleanVer}_${suffix}`;
+        };
+
+        // Render download buttons based on current channel
+        function updateDownloadLinks() {
+          const currentRel = activeReleases[currentChannel];
+          const currentVer = currentRel?.version || (currentChannel === "stable" ? "v0.1.7" : "v0.1.9-beta.8");
+
+          // Update Channel Tabs
+          document.querySelectorAll("[data-channel]").forEach(btn => {
+            const isMatch = btn.dataset.channel === currentChannel;
+            btn.setAttribute("aria-pressed", String(isMatch));
+          });
+
+          // Update Notes
+          const noteEl = document.getElementById("channel-note");
+          if (noteEl) {
+            noteEl.textContent = currentChannel === "stable"
+              ? "稳定版推荐日常使用，经过充分验证；测试版包含最新特性与修复。"
+              : "测试版包含最新改动与尝鲜特性，更新更频繁。重要数据建议定期备份。";
+          }
+
+          // Update each installer link in cards
+          document.querySelectorAll(".installer-btn").forEach(btn => {
+            const suffix = btn.dataset.suffix;
+            if (!suffix) return;
+            const targetUrl = makeDownloadUrl(currentVer, suffix);
+            btn.href = targetUrl;
+            btn.classList.remove("unavailable");
+            btn.removeAttribute("aria-disabled");
+          });
+
+          // Refresh OS Recommendation card with current version
+          detectAndSetRecommendation(currentVer);
+        }
+
+        // Detect user OS
+        function detectAndSetRecommendation(version) {
+          const ua = navigator.userAgent || "";
+          const platform = navigator.platform || "";
+          let os = "other";
+          let label = "适用你的系统";
+          let filename = "";
+          let desc = "";
+
+          const isMac = /Macintosh|MacIntel|MacPPC|Mac68K/i.test(ua) || /Mac/i.test(platform);
+          const isWin = /Win32|Win64|Windows|WinCE/i.test(ua) || /Win/i.test(platform);
+          const isAndroid = /Android/i.test(ua);
+          const isIOS = /iPhone|iPad|iPod/i.test(ua);
+          const isLinux = /Linux/i.test(ua) && !isAndroid;
+
+          if (isMac) {
+            os = "mac";
+            // Check for Apple Silicon
+            const isAppleSilicon = /ARM/i.test(navigator.userAgentData?.architecture || "") ||
+              (navigator.maxTouchPoints > 1 && !/iPhone|iPad/i.test(ua)) || true; // Most Macs today
+            if (isAppleSilicon) {
+              label = "macOS (Apple Silicon)";
+              filename = "aarch64.dmg";
+              desc = "适用于搭载 M1 / M2 / M3 / M4 芯片的 MacBook、iMac、Mac mini";
+            } else {
+              label = "macOS (Intel)";
+              filename = "x64.dmg";
+              desc = "适用于搭载 Intel 处理器的 Mac 设备";
+            }
+          } else if (isWin) {
+            os = "windows";
+            label = "Windows (x64)";
+            filename = "x64-setup.exe";
+            desc = "适用于 64 位 Windows 10 与 Windows 11";
+          } else if (isAndroid) {
+            os = "android";
+            label = "Android (ARM64)";
+            filename = "android_arm64-v8a.apk";
+            desc = "适用于绝大多数现代 Android 手机与平板设备";
+          } else if (isIOS) {
+            os = "ios";
+            label = "iPhone / iPad (Web App)";
+            desc = "iOS 暂未上架 App Store，可直接使用网页版并「添加到主屏幕」";
+          } else if (isLinux) {
+            os = "linux";
+            label = "Linux (AppImage)";
+            filename = "amd64.AppImage";
+            desc = "适用于 Ubuntu, Debian, Fedora, Arch 等主流发行版";
+          }
+
+          const titleEl = document.getElementById("os-title");
+          const descEl = document.getElementById("os-desc");
+          const btnEl = document.getElementById("os-btn");
+          const btnVerEl = document.getElementById("os-btn-ver");
+
+          if (os === "ios") {
+            if (titleEl) titleEl.textContent = label;
+            if (descEl) descEl.textContent = desc;
+            if (btnEl) {
+              btnEl.textContent = "打开免安装网页版 ↗";
+              btnEl.href = "https://nextdo-app.157712.xyz";
+              btnEl.target = "_blank";
+            }
+          } else if (filename) {
+            if (titleEl) titleEl.textContent = `推荐下载：${label}`;
+            if (descEl) descEl.textContent = desc;
+            if (btnEl) {
+              btnEl.href = makeDownloadUrl(version, filename);
+              btnEl.innerHTML = `一键下载 ${version} ↓`;
+            }
+          } else {
+            if (titleEl) titleEl.textContent = "选择适合你设备的安装包";
+            if (descEl) descEl.textContent = "支持 macOS、Windows、Linux、Android 与浏览器在线使用";
+            if (btnEl) {
+              btnEl.href = "#platforms";
+              btnEl.innerHTML = `浏览全部平台 ↓`;
+            }
+          }
+        }
+
+        // Setup channel tab clicks
+        document.querySelectorAll("[data-channel]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            currentChannel = btn.dataset.channel;
+            updateDownloadLinks();
+          });
+        });
+
+        // Initialize OS detection immediately
+        detectAndSetRecommendation(fallbackReleases.stable.version);
+
+        // Fetch latest version info from API or GitHub
+        (async () => {
+          const statusEl = document.getElementById("sync-status");
+          try {
+            // First try internal API endpoint
+            let data = null;
+            try {
+              const res = await fetch("/api/releases");
+              if (res.ok) data = await res.json();
+            } catch {}
+
+            // If internal endpoint not responding, fetch GitHub directly
+            if (!data || !data.stable) {
+              const [stRes, recRes] = await Promise.all([
+                fetch("https://api.github.com/repos/nextdo-app/nextdo/releases/latest"),
+                fetch("https://api.github.com/repos/nextdo-app/nextdo/releases?per_page=10")
+              ]);
+              if (stRes.ok && recRes.ok) {
+                const st = await stRes.json();
+                const rec = await recRes.json();
+                const bt = rec.find(r => !r.draft && r.prerelease) || st;
+                data = {
+                  stable: { version: st.tag_name, assets: st.assets || [] },
+                  beta: { version: bt.tag_name, assets: bt.assets || [] }
+                };
+              }
+            }
+
+            if (data && data.stable?.version) {
+              activeReleases.stable.version = data.stable.version;
+              const stableTag = document.getElementById("stable-tag");
+              if (stableTag) stableTag.textContent = data.stable.version;
+
+              if (data.beta?.version) {
+                activeReleases.beta.version = data.beta.version;
+                const betaTag = document.getElementById("beta-tag");
+                if (betaTag) betaTag.textContent = data.beta.version;
+              }
+
+              if (statusEl) {
+                statusEl.textContent = `✓ 已同步最新官方发布 (${data.stable.version})，支持高速直接下载。`;
+              }
+              updateDownloadLinks();
+            }
+          } catch {
+            if (statusEl) {
+              statusEl.textContent = `✓ 当前为最新稳定版本 (${fallbackReleases.stable.version})，点击即可开始高速下载。`;
+            }
+          }
+        })();
+
+        // Mobile drawer toggle
+        const toggle = document.getElementById("mobile-toggle");
+        const drawer = document.getElementById("mobile-drawer");
+        if (toggle && drawer) {
+          toggle.addEventListener("click", () => {
+            const isOpen = drawer.classList.toggle("open");
+            toggle.setAttribute("aria-expanded", String(isOpen));
+          });
+          document.querySelectorAll(".mobile-link").forEach(link => {
+            link.addEventListener("click", () => {
+              drawer.classList.remove("open");
+              toggle.setAttribute("aria-expanded", "false");
+            });
+          });
+        }
+      })();
+    </script>
+  </body>
 </html>

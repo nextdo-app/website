@@ -2,9 +2,9 @@
 
 Nextdo 产品官网，使用 Astro 静态页面 + Cloudflare Pages Functions。
 
-- 产品官网：首页 `/`
-- 安装包下载：`/download`
-- 产品官网：https://nextdo-app.157712.xyz\n- 现有网页版：https://nextdo-cew.pages.dev
+- 产品官网：https://nextdo.157712.xyz
+- 客户端下载：/download（https://nextdo.157712.xyz/download/）
+- 在线网页版 / PWA：https://nextdo-app.157712.xyz（备用地址：https://nextdo-cew.pages.dev）
 - 代码仓库：https://github.com/nextdo-app/nextdo
 
 ## 本地运行
