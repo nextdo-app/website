@@ -5,6 +5,48 @@ const headers = {
   "User-Agent": "nextdo-website"
 };
 const allowed = /^Nextdo_[A-Za-z0-9._-]+\.(dmg|exe|msi|AppImage|deb|apk)$/;
+const compareReleases = (a, b) => {
+  const parse = (v) => {
+    const m = (v || "").match(/^v?(\d+)\.(\d+)\.(\d+)(?:-([a-zA-Z0-9.]+))?/);
+    if (!m) return null;
+    const parts = (m[4] || "").split(".").map(p => /^\d+$/.test(p) ? parseInt(p, 10) : p);
+    return {
+      major: parseInt(m[1], 10),
+      minor: parseInt(m[2], 10),
+      patch: parseInt(m[3], 10),
+      prerelease: m[4] ? parts : null
+    };
+  };
+  const pa = parse(a.tag_name || a.version);
+  const pb = parse(b.tag_name || b.version);
+  if (pa && pb) {
+    if (pb.major !== pa.major) return pb.major - pa.major;
+    if (pb.minor !== pa.minor) return pb.minor - pa.minor;
+    if (pb.patch !== pa.patch) return pb.patch - pa.patch;
+    if (!pb.prerelease && pa.prerelease) return 1;
+    if (pb.prerelease && !pa.prerelease) return -1;
+    if (pb.prerelease && pa.prerelease) {
+      const len = Math.max(pb.prerelease.length, pa.prerelease.length);
+      for (let i = 0; i < len; i++) {
+        const pA = pa.prerelease[i];
+        const pB = pb.prerelease[i];
+        if (pA === undefined) return 1;
+        if (pB === undefined) return -1;
+        if (typeof pA === "number" && typeof pB === "number") {
+          if (pB !== pA) return pB - pA;
+        } else {
+          const c = String(pB).localeCompare(String(pA), undefined, { numeric: true });
+          if (c !== 0) return c;
+        }
+      }
+    }
+  } else {
+    const cmp = (b.tag_name || b.version || "").localeCompare(a.tag_name || a.version || "", undefined, { numeric: true });
+    if (cmp !== 0) return cmp;
+  }
+  return new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0);
+};
+
 
 export async function onRequestGet({ request }) {
   const url = new URL(request.url);
@@ -29,25 +71,26 @@ export async function onRequestGet({ request }) {
     // Fetch release metadata
     const [stableRes, recentRes] = await Promise.all([
       fetch(`${API}/releases/latest`, { headers }).catch(() => null),
-      fetch(`${API}/releases?per_page=10`, { headers }).catch(() => null)
+      fetch(`${API}/releases?per_page=20`, { headers }).catch(() => null)
     ]);
 
     const stableData = stableRes && stableRes.ok ? await stableRes.json() : null;
     const recentData = recentRes && recentRes.ok ? await recentRes.json() : [];
+    const sortedRecent = Array.isArray(recentData) ? [...recentData].sort(compareReleases) : [];
 
     let targetRelease = null;
     if (channel === "beta") {
-      targetRelease = recentData.find(r => !r.draft && r.prerelease && Array.isArray(r.assets) && r.assets.length > 0) || stableData;
+      targetRelease = sortedRecent.find(r => !r.draft && r.prerelease && Array.isArray(r.assets) && r.assets.length > 0) || stableData;
     } else {
-      targetRelease = stableData || recentData.find(r => !r.draft && !r.prerelease) || recentData[0];
+      targetRelease = stableData || sortedRecent.find(r => !r.draft && !r.prerelease) || sortedRecent[0];
     }
 
     // Find asset: first exact match by filename
     let asset = targetRelease?.assets?.find(a => a.name === filename);
 
     // If not found in target release, check all recent releases for exact filename
-    if (!asset && Array.isArray(recentData)) {
-      for (const rel of recentData) {
+    if (!asset && Array.isArray(sortedRecent)) {
+      for (const rel of sortedRecent) {
         const match = rel.assets?.find(a => a.name === filename);
         if (match) {
           asset = match;
@@ -63,8 +106,8 @@ export async function onRequestGet({ request }) {
     }
 
     // If still not found, check any recent release for suffix match
-    if (!asset && Array.isArray(recentData)) {
-      for (const rel of recentData) {
+    if (!asset && Array.isArray(sortedRecent)) {
+      for (const rel of sortedRecent) {
         const match = rel.assets?.find(a => a.name.endsWith(`_${suffix}`) || a.name === suffix);
         if (match) {
           asset = match;
