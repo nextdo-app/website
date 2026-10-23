@@ -764,6 +764,7 @@ const getDirectUrl = (tag, suffix) =>
               }
               updateDownloadLinks();
             }
+          } catch {
             if (statusEl) {
               statusEl.textContent = `✓ 当前为最新稳定版本 (${fallbackReleases.stable.version})，点击即可开始高速下载。`;
             }
