@@ -165,8 +165,9 @@ const platforms = [
   }
 ];
 
+const proxyBase = "https://proxyd.picpi.top/";
 const getDirectUrl = (tag, suffix) =>
-  `https://github.com/nextdo-app/nextdo/releases/download/${tag}/Nextdo_${tag.replace(/^v/, "")}_${suffix}`;
+  `${proxyBase}https://github.com/nextdo-app/nextdo/releases/download/${tag}/Nextdo_${tag.replace(/^v/, "")}_${suffix}`;
 ---
 <!doctype html>
 <html lang="zh-CN">
@@ -339,7 +340,7 @@ const getDirectUrl = (tag, suffix) =>
 
         <!-- Release Sync Status & GitHub Mirror -->
         <div class="release-status-bar">
-          <span id="sync-status">✓ 安装包由 Nextdo 官方发布源直接提供，高速且安全。</span>
+          <span id="sync-status">✓ 安装包来自 Nextdo 官方发布源，经国内三网加速线路提供。</span>
           <span>·</span>
           <a href={`${sourceUrl}/releases`} target="_blank" rel="noopener noreferrer">
             前往 GitHub Releases 页面查看完整资产 ↗
@@ -417,7 +418,7 @@ const getDirectUrl = (tag, suffix) =>
             <summary>安装包是从哪里下载的？速度慢如何处理？</summary>
             <div class="faq-answer">
               <p>
-                本站直接重定向至 Nextdo 官方 GitHub Releases 官方存储（由全球 Fastly / AWS CDN 加速）。如果您在特定网络环境下访问 GitHub Releases 遇到速度较慢的情况，建议在页面底部直接访问 GitHub Releases 页面，或配合加速镜像下载。
+                本站安装包来自 Nextdo 官方 GitHub Releases，通过国内三网加速反向代理（proxyd.picpi.top）提供下载，电信 / 联通 / 移动网络均可获得较好的下载速度。如加速线路临时不可用，可点击页面底部的 GitHub Releases 链接直连官方源下载。
               </p>
             </div>
           </details>
@@ -562,9 +563,11 @@ const getDirectUrl = (tag, suffix) =>
 
         let activeReleases = { ...fallbackReleases };
 
+        const PROXY_BASE = "https://proxyd.picpi.top/";
+        const proxy = (url) => (url.startsWith(PROXY_BASE) ? url : PROXY_BASE + url);
         const makeDownloadUrl = (ver, suffix) => {
           const cleanVer = ver.replace(/^v/, "");
-          return `https://github.com/nextdo-app/nextdo/releases/download/${ver}/Nextdo_${cleanVer}_${suffix}`;
+          return proxy(`https://github.com/nextdo-app/nextdo/releases/download/${ver}/Nextdo_${cleanVer}_${suffix}`);
         };
 
         // Render download buttons based on current channel
@@ -595,7 +598,7 @@ const getDirectUrl = (tag, suffix) =>
             if (Array.isArray(assets) && assets.length > 0) {
               const matchedAsset = assets.find(a => a.name.endsWith(`_${suffix}`) || a.name === suffix);
               if (matchedAsset) {
-                btn.href = matchedAsset.download_url || targetUrl;
+                btn.href = matchedAsset.download_url ? proxy(matchedAsset.download_url) : targetUrl;
                 btn.classList.remove("unavailable");
                 btn.removeAttribute("aria-disabled");
                 btn.title = "";

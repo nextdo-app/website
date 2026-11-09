@@ -4,6 +4,8 @@ const headers = {
   "Accept": "application/vnd.github+json",
   "User-Agent": "nextdo-website"
 };
+const PROXY_BASE = "https://proxyd.picpi.top/";
+const viaProxy = (url) => (url.startsWith(PROXY_BASE) ? url : PROXY_BASE + url);
 const allowed = /^Nextdo_[A-Za-z0-9._-]+\.(dmg|exe|msi|AppImage|deb|apk)$/;
 const compareReleases = (a, b) => {
   const parse = (v) => {
@@ -119,7 +121,7 @@ export async function onRequestGet({ request }) {
     if (asset && asset.browser_download_url) {
       // If streaming is not explicitly requested, or if file is large (> 40MB), 302 redirect directly to GitHub CDN
       if (!stream || (asset.size && asset.size > 40 * 1024 * 1024)) {
-        return Response.redirect(asset.browser_download_url, 302);
+        return Response.redirect(viaProxy(asset.browser_download_url), 302);
       }
 
       // Optional stream proxy
@@ -141,13 +143,13 @@ export async function onRequestGet({ request }) {
       } catch {
         // Fall back to redirect if stream proxying fails
       }
-      return Response.redirect(asset.browser_download_url, 302);
+      return Response.redirect(viaProxy(asset.browser_download_url), 302);
     }
 
     // Construct direct release asset URL if release tag is known
     if (targetRelease?.tag_name) {
       const directUrl = `${GITHUB_REPO}/releases/download/${targetRelease.tag_name}/${filename}`;
-      return Response.redirect(directUrl, 302);
+      return Response.redirect(viaProxy(directUrl), 302);
     }
 
     // Final fallback: redirect to releases page
